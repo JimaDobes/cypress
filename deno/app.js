@@ -30,9 +30,12 @@ import { Webview } from "https://deno.land/x/webview@0.7.5/src/webview.ts";
 import { preload, unload } from "https://deno.land/x/webview@0.7.5/src/ffi.ts";
 import { getAvailablePortSync } from "https://deno.land/x/port/mod.ts";
 
+// TODO share via file
+const portAppChannel = 47083;
 const config = {
 	port: getAvailablePortSync()
 	,host: 'localhost'
+	,portAppChannel
 };
 
 const workerUrl = new URL("./http.js", import.meta.url).href;
@@ -40,9 +43,18 @@ const worker = new Worker(workerUrl, { type: "module" });
 worker.postMessage({ command: "serve", ...config });
 
 const webview = new Webview(true);
+webview.title = `cypress 🌲`;
+webview.size = {width:300,height:300,hint:1};
 
-console.log(`webview`,{webview});
+console.log(`webview`,{webview,globalThis,config,worker});
 
 webview.navigate(`http://${ config.host }:${ config.port }`);
+
+let count = 0;
+webview.bind("radio", (...input)=>{
+	console.log(`-> radio(...input)`,input);
+	return {input, count:count++};
+});
+
 webview.run();
 worker.postMessage({ command: "quit" });

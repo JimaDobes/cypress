@@ -1,11 +1,11 @@
 {
-  "name": "Ps cypress",
-  "id": "com.adobe.photoshop.cypress",
-  "version": "0.1.0",
+  "name": "cypress 🌲",
+  "id": "com.adobe.cypress",
+  "version": "0.0.0",
   "main": "index.html",
   "host": {
     "app": "PS",
-    "minVersion": "23.5.0",
+    "minVersion": "23.0.0",
     "data" : {
       "apiVersion": 2
     }
@@ -14,9 +14,9 @@
   "entrypoints": [
     {
       "type": "panel",
-      "id": "cypress",
+      "id": "wsappchannel",
       "label": {
-        "default": "cypress 🌲"
+        "default": "cypress 🌲🌲"
       },
       "minimumSize": {
         "width": 230,
