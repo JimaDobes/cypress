@@ -1,6 +1,7 @@
 // http
 import * as paf from "https://deno.land/std/path/mod.ts";
 import { Application, Router, HttpError, send, Status } from "https://deno.land/x/oak/mod.ts";
+import { wschat } from "./wschat.js";
 
 const config = {
 	host: 'localhost'
@@ -18,6 +19,7 @@ config.userAgent = `cypress/${config.version} Deno/${Deno.version.deno} V8/${Den
 config.root = paf.resolve(paf.dirname(script.pathname), config.www);
 
 const app = new Application(config);
+const router = new Router();
 
 const charset = '; charset=utf-8';
 const mimetypes = {
@@ -31,6 +33,8 @@ const mimetypes = {
 	,html: `text/html${ charset }`
 	// application/csp-report as JSON
 };
+
+router.get('/ws', wschat);
 
 // general error handling including unhandled middleware errors (500)
 app.use(async (context, next) => {
@@ -92,6 +96,13 @@ ${ JSON.stringify({pathname, status, err, ext, message: err.message, _status, st
 function log(status='000', VERB='GUESS', what='', who='?', client='~', where='...', other='-'){
 	console.log(`${ (new Date).toISOString() } ${ status } "${ VERB } ${ what }" ${ who } "${ client }" ${ where } ${ other }`);
 }
+function _log(config){
+	const {status, VERB, what, who, client, where, other} = config ?? {};
+	log(status, VERB, what, who, client, where, other);
+}
+app.log = log;
+app._log = _log;
+globalThis.app = app;
 
 // Logger
 app.use(async (context, next) => {
@@ -101,10 +112,13 @@ app.use(async (context, next) => {
 	log(context.response.status, request.method, request.url, request.user, request.headers.get('user-agent'), request.ip, time);
 });
 
+app.use(router.routes());
+app.use(router.allowedMethods());
+
 // static content
 app.use(async context => {
 	// config = {root: paf.resolve(Deno.cwd(), '....'), index: 'index.html'}
-	console.warn({url: context.request.url, index: config.index});
+	// console.warn(`static>`,{url: context.request.url, index: config.index});
 	//await send(context, context.request.url.pathname, config);
 	await send(context, context.request.url.pathname, config);
 });
@@ -135,6 +149,6 @@ self.onmessage = async (e) => {
 			self.close();
 		} break;
 	}
-	console.warn(`worker ${ command }>`,{server, config});
+	console.warn(`- worker ${ command }>`,{server, config});
 };
 

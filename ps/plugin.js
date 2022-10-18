@@ -53,19 +53,14 @@ connectButton.onclick = () => {
 		log("Disconnected");
 		websocket = null;
 	}
-	websocket.onmessage = evt => {
+	websocket.onmessage = function _message(event){
+		const {type, data} = event;
+		const evt = event;
 		const [cmd, ...args] = evt.data.split("=");
 		receivedMessages.push(evt.data);
-		switch (cmd) {
-			case "text":
-				log(args.join("="));
-				break;
-			case "err":
-				log(`Error from server: ${args.join("=")}`)
-				break;
-			default:
-				log(`Don't know how to ${cmd}`);
-		}
+		log(data);
+		console.log(type, {data, event});
+		return;
 	}
 	websocket.onerror = evt => {
 		log(`Error: ${evt.data}`);

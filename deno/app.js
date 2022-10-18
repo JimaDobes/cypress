@@ -32,8 +32,10 @@ import { getAvailablePortSync } from "https://deno.land/x/port/mod.ts";
 
 // TODO share via file
 const portAppChannel = 47083;
+const title = `cypress 🌲`;
+globalThis.title = title;
 const config = {
-	port: getAvailablePortSync()
+	port: portAppChannel //getAvailablePortSync()
 	,host: 'localhost'
 	,portAppChannel
 };
@@ -43,10 +45,10 @@ const worker = new Worker(workerUrl, { type: "module" });
 worker.postMessage({ command: "serve", ...config });
 
 const webview = new Webview(true);
-webview.title = `cypress 🌲`;
+webview.title = title;
 webview.size = {width:300,height:300,hint:1};
 
-console.log(`webview`,{webview,globalThis,config,worker});
+console.log(`${title}`,{webview,config,worker});
 
 webview.navigate(`http://${ config.host }:${ config.port }`);
 
