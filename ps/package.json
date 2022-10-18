@@ -1,9 +1,0 @@
-{
-  "name": "ws-bridge-thing",
-  "version": "0.0.1",
-  "description": "ws-connection into apps",
-  "main": "wsserver.js",
-  "DISABLED-ON-PURPOSE-dependencies": {
-    "websocket": "^1.0.34"
-  }
-}
