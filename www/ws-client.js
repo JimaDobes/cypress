@@ -100,7 +100,7 @@ class WsClient extends LitElement{
 		return html`
 <h3>${ this.localName }${ this.loading ? 'loading...':'' }</h3> 
 <form @submit=${ this._submit } @reset=${ this._reset }>
-<input type=search msg>
+<input type=search msg placeholder="send message">
 <div>
 <button type=submit>${ this.connected ? 'send':'connect' }</button>
 <button disconnect type=reset>disconnect</button>

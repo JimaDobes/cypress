@@ -103,7 +103,7 @@ body{
 	<body>
 <form panel>
 <!-- input ws type=hidden value="http://localhost:47083" -->
-<input msg type=search placeholder="message">
+<input msg type=search placeholder="send message">
 <fieldset>
 <button connect type=submit>connect</button>
 <button disconnect type=reset>disconnect</button>
@@ -204,21 +204,20 @@ const app = {
 };
 requestAnimationFrame(app.setup);
 </script>
-<script nomodule>/* runs in UXP context */</script>
+<script nomodule>
+/* runs in UXP context */
+require('./ps.js');
+globalThis.ps.init();
+</script>
 <script type=module>
 /* modern browser context */
-/*
 Promise.all([
 	 import('./browser.js')
 	,import('./ps.js')
 ]).then(res=>{
 	const { ps, photoshop } = globalThis;
 	ps.init();
-	requestAnimationFrame(()=>{
-		const text = `module setup...ready?`
-		console.log(text);
-		self.dispatchEvent(new CustomEvent('log', {detail:text}));
-	});
+	console.log({ps, photoshop});
 })
 ;
 */
