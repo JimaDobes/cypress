@@ -1,7 +1,5 @@
 import { ReactiveElement, LitElement, html, svg, css } from './deps.js';
 
-console.log('www/cypress-app.js');
-
 class CypressApp extends LitElement{
 	static properties = {
 		TODO: {type: String, attribute: true}

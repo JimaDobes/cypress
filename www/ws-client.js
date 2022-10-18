@@ -1,8 +1,6 @@
 import { ReactiveElement, LitElement, html, svg, css } from './deps.js';
 import { msg, updateWhenLocaleChanges, localeList, localeDictionary, setLocale, getLocale, updateLocaleFromUrl } from './locales.js';
 
-console.log('www/ws-client.js', {html, LitElement, css, svg, msg, getLocale});
-
 class WsClient extends LitElement{
 	static properties = {
 		connected: {type: Boolean, reflect: true}
@@ -27,16 +25,20 @@ class WsClient extends LitElement{
 		this._handleThis = this._handleThis.bind(this);
 	}
 	_handleThis(event){
-		const {type, data} = event;
+		const {type, data, message} = event;
+		const { ws } = this;
 		switch(type){
 		case 'close':
 			this.disconnect();
+		break;
+		case 'open':
+			this.connected = true;
 		break;
 		case 'message':
 			console.log(type, {data});
 		break;
 		default:
-			console.log(type, {data, event});
+			console.log(type, {data, message, readyState: ws?.readyState, event});
 		}
 	}
 	connectedCallback(){
@@ -45,28 +47,24 @@ class WsClient extends LitElement{
 	disconnectedCallback(){
 		super.disconnectedCallback();
 	}
+	/* ws.readyState: 0 opening; 1 open; 2 closing; 3 closed; */
 	connect(){
 		let ws = this.ws;
-		if(!ws){
+		if(!ws || ws.readyState > 1){
 			ws = new WebSocket(`ws://localhost:${ this.portAppChannel }/ws`);
 			this.ws = ws;
 			this.wsEvents.forEach(function(type){
 				ws.addEventListener(type, this._handleThis);
 			}, this);
-			this.connected = true;
 		}
-	}
-	_wsEvent(type){
-		this.ws[this.type](type, this._handleThis);
 	}
 	get wsEvents(){ return ['message','open','close','error']; }
 	disconnect(){
 		const { ws } = this;
 		if(!ws) return;
-		/* ws.readyState: 0 opening; 1 open; 2 closing; 3 closed; */
-		console.log({readyState:this.ws.readyState});
-		this.ws.close();
-		console.log({readyState:this.ws.readyState});
+		if(ws.readyState<2){
+			this.ws.close();
+		}
 		this.connected = false;
 		this.wsEvents.forEach(function(type){
 			ws.removeEventListener(type, this._handleThis);

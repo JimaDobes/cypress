@@ -5,20 +5,195 @@
 		<meta name='viewport' content='width=device-width,initial-scale=1' />
 		<meta name='description' content="cypress" />
 		<title>cypress</title>
-		<link rel=stylesheet href="./style.css">
+<style>
+@charset "UTF-8";
+:root{
+	--radius: 6px;
+	--square: 99px;
+	--margin: 7px;
+	--c-bg-: Canvas;
+	--c-fg-: CanvasText;
+	--c-hiblu: #1373e5;
+	--c-hiblu2: #114481;
+	--c-hiblu2: rgba(19, 115, 229, 0.7);
+}
+@media (prefers-color-scheme: light){
+	:root{
+		--c-bg-: #fff;
+		--c-fg-: #000;
+		--c-alt2-: rgba(51,51,51,0.7);
+		--c-alt1-: #505050;
+		--c-alt-: #ddd;
+		--c-txt: #000;
+	}
+}
+@media (prefers-color-scheme: dark){
+	:root{
+		--c-bg-: #555;
+		--c-fg-: #fff;
+		--c-alt2-: #444;
+		--c-alt2-: rgba(51,51,51,0.7);
+		--c-alt1-: #505050;
+		--c-alt-: #333;
+		--c-txt: #fff;
+	}
+}
+/* --uxp-* see https://developer.adobe.com/photoshop/uxp/2022/guides/theme-awareness/ */
+:root{
+	--c-bg: var(--uxp-host-background-color, var(--c-bg-));
+	--c-fg: var(--uxp-host-text-color, var(--c-fg-));
+	--c-hiblu: var(--uxp-host-link-text-color, #1373e5);
+
+	--c-border: var(--uxp-host-border-color, var(--c-alt-));
+	--c-alt: var(--c-border, var(--c-alt-));
+	--c-link: var(--uxp-host-link-text-color, var(--c-fg));
+	--c-w-hover: var(--uxp-host-widget-hover-background-color, var(--c-border));
+	--c-w-txt-hover: var(--uxp-host-widget-hover-text-color, var(--c-fg));
+	--c-alt2: var(--c-w-hover, var(--c-alt2-));
+	--c-border-hover: var(--uxp-host-widget-hover-border-color, var(--c-alt1-));
+	--c-alt1: var(--c-border-hover);
+
+	--c-txt-alt: var(--uxp-host-text-color-secondary, var(--c-fg));
+	--c-txt-hover: var(--uxp-host-link-hover-text-color, var(--c-fg));
+	--c-txt-label: var(--uxp-host-label-text-color, var(--c-fg));
+
+	--txt-size: var(--uxp-host-font-size, 1rem);
+	--txt-size-small: var(--uxp-host-font-size-smaller, 0.7rem);
+	--txt-size-large: var(--uxp-host-font-size-larger, 1.5rem);
+}
+html, body{
+	margin:0;
+	padding:0;
+	font-family: sans-serif;
+	background-color: var(--c-bg);
+	color: var(--c-fg);
+}
+
+body{
+	overflow: scroll;
+	height: 100vh;
+}
+
+[panel]{
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: stretch;
+	padding: 0.5em;
+	margin: 0 auto;
+
+	border: thin solid var(--c-alt, #232323);
+}
+
+[panel] > :not(div){
+	margin: var(--margin);
+}
+
+[panel][connected]{
+	border-color: var(--c-hiblu, blue);
+}
+</style>
 	</head>
 	<body>
-<section panel>
-</section>
-<script nomodule src="./plugin.js"></script>
-<script nomodule></script>
+<form panel>
+<!-- input ws type=hidden value="http://localhost:47083" -->
+<input msg type=search placeholder="message">
+<fieldset>
+<button type=submit>connect</button>
+<button type=reset>disconnect</button>
+</fieldset>
+<textarea value="content">
+</textarea>
+</form>
+<script>
+// global context, for this document
+const app = {
+	ws: null,
+	connected: false,
+	portAppChannel: 47083,
+	_submit: function(event){
+		event.preventDefault();
+		const { ws } = app;
+		if(!ws || ws.readyState > 1){
+			app.connect();
+		}else{
+			const $msg = document.querySelector('[msg]');
+			const msg = $msg.value.trim();
+			$msg.value = '';
+			if(msg){
+				console.warn(`sent`, {msg});
+				ws.send(msg);
+			}else{
+				console.warn(`msg missing`, {msg});
+			};
+		};
+	},
+	_reset: function(event){
+		app.disconnect();
+	},
+	wsEvents(){ return ['message','open','close','error']; },
+	connect(){
+		let { ws } = this;
+		if(!ws || ws.readyState > 1){
+			ws = new WebSocket(`ws://localhost:${ this.portAppChannel }/ws`);
+			this.ws = ws;
+			this.wsEvents().forEach(function(type){
+				ws.addEventListener(type, this._handleThis);
+			}, this);
+		}
+	},
+	disconnect(){
+		const { ws } = this;
+		if(!ws) return;
+		if(ws.readyState<2){
+			this.ws.close();
+		}
+		this.connected = false;
+		this.wsEvents().forEach(function(type){
+			ws.removeEventListener(type, this._handleThis);
+		}, this);
+		document.querySelector('form').removeAttribute('connected');
+		this.ws = null;
+	},
+	_handleThis(event){
+		const {type, data, message} = event;
+		const { ws } = this;
+		switch(type){
+		case 'close':
+			this.disconnect();
+		break;
+		case 'open':
+			this.connected = true;
+			document.querySelector('form').setAttribute('connected','');
+		break;
+		case 'message':
+			console.log(type, {data});
+		break;
+		default:
+			console.log(type, {data, message, readyState: ws?.readyState, event});
+		}
+	},
+	setup(){
+		app._handleThis = app._handleThis.bind(app);
+
+		const form = document.querySelector('form');
+		form.addEventListener('submit', app._submit);
+		form.addEventListener('reset', app._reset);
+		// apparently reset isn't a feature
+		form.querySelector('[type="reset"]').addEventListener('click', app._reset);
+	}
+};
+requestAnimationFrame(app.setup);
+</script>
+<script nomodule>/* runs in UXP context */</script>
 <script type=module>
+/* modern browser context */
 /*
 Promise.all([
 	 import('./browser.js')
 	,import('./ps.js')
 ]).then(res=>{
-	const { ps, photoshop, Presets } = globalThis;
+	const { ps, photoshop } = globalThis;
 	ps.init();
 	requestAnimationFrame(()=>{
 		const text = `module setup...ready?`
@@ -29,110 +204,5 @@ Promise.all([
 ;
 */
 </script>
-<style>
-.wrapper {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	overflow: auto;
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-}
-.wrapper > *	{
-	flex: 0 0 auto;
-	margin: 4px 0;
-}
-footer > * {
-	margin: 0 8px;
-}
-footer > *:last-child {
-	margin-right: 0;
-}
-.row {
-	display: flex;
-	flex-direction: row;
-	align-items: flex-end;
-}
-.row > * {
-	margin: 0 8px;
-}
-.row > *:first-child {
-	margin-left: 0;
-}
-.row > *:last-child {
-	margin-right: 0;
-}
-.row sp-textfield, .row sp-checkbox, .row sp-detail {
-	flex: 1 1 auto;
-}
-.row sp-button {
-	flex: 0 0 auto;
-}
-#output {
-	background: var(--uxp-host-widget-hover-background-color);
-	padding: 14px;
-	border-radius: 4px;
-	border: 1px solid var(--uxp-host-widget-hover-border-color);
-	font-family: 'Source Code Pro', 'Menlo', 'Courier New', Courier, monospace;
-	white-space: pre-wrap;
-}
-#state {
-	position: relative;
-	margin-left: 1.5em ;
-}
-#state:before {
-	content: '';
-	position: absolute;
-	left: -1.5em;
-	top: .5em;
-	width: 1em; height: 1em;
-	border-radius: .5em;
-}
-#state.negative:before {
-	background-color: red;
-	border: 1px solid rgba(255,255,255,0.25);
-}
-#state.positive:before {
-	background-color: green;
-	border: 1px solid rgba(255,255,255,0.25);
-}
-
-</style>
-<div class="wrapper">
-<sp-heading>WebSocket Test</sp-heading>
-<sp-divider size="large"></sp-divider> 
-
-<sp-detail>SERVER CONNECTION</sp-detail>
-<sp-divider></sp-divider>
-<div class="row">
-	<sp-textfield placeholder="url" value="ws://127.0.0.1:47083/ws" id="url"><sp-label slot="label">Server URL</sp-label></sp-textfield>
-	<sp-button id="connect">Connect</sp-button>
-</div>
-
-<div class="row">
-	<sp-detail>SERVER STATUS</sp-detail>
-	<sp-body size="XS" id="state" class="negative">Disconnected</sp-body>
-</div>
-<sp-divider></sp-divider>
-<sp-body id="output">Output...</sp-body>
-
-<sp-detail>INTERACTION</sp-detail>
-<sp-divider></sp-divider>
-<sp-textfield placeholder="Send a message" id="text"><sp-label slot="label">Send a message</sp-label></sp-textfield>
-<sp-checkbox id="rand">Random Numbers (250ms)</sp-checkbox>
-<sp-checkbox id="fast">Incremental Numbers (1-4ms)</sp-checkbox>
-
-<div style="flex: 1 1 auto"></div>
-
-<sp-detail>CONTROL</sp-detail>
-<sp-divider></sp-divider>
-<footer>
-	<sp-action-button id="validate">Validate</sp-action-button>
-	<sp-action-button id="disconnect">Disconnect</sp-action-button>
-</footer>
-</div>
 </body>
 </html>
