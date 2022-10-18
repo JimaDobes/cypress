@@ -36,6 +36,7 @@ class WsClient extends LitElement{
 		break;
 		case 'message':
 			console.log(type, {data});
+			this.shadowRoot.querySelector('[broadcast]').value = data;
 		break;
 		default:
 			console.log(type, {data, message, readyState: ws?.readyState, event});
@@ -100,12 +101,12 @@ class WsClient extends LitElement{
 <h3>${ this.localName }${ this.loading ? 'loading...':'' }</h3> 
 <form @submit=${ this._submit } @reset=${ this._reset }>
 <input type=search msg>
+<div>
 <button type=submit>${ this.connected ? 'send':'connect' }</button>
 <button disconnect type=reset>disconnect</button>
-<fieldset output>
-<label>output</label>
+</div>
+<textarea broadcast placeholder="last broadcast" readonly></textarea>
 <slot>...</slot>
-</fieldset>
 </form>
 		`;
 	}

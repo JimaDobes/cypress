@@ -92,6 +92,12 @@ body{
 [panel][connected]{
 	border-color: var(--c-hiblu, blue);
 }
+[panel][connected] button[connect]{
+	display:none;
+}
+[broadcast]{
+	height: 8em;
+}
 </style>
 	</head>
 	<body>
@@ -99,11 +105,10 @@ body{
 <!-- input ws type=hidden value="http://localhost:47083" -->
 <input msg type=search placeholder="message">
 <fieldset>
-<button type=submit>connect</button>
-<button type=reset>disconnect</button>
+<button connect type=submit>connect</button>
+<button disconnect type=reset>disconnect</button>
 </fieldset>
-<textarea value="content">
-</textarea>
+<textarea broadcast placeholder="last broadcast" readonly></textarea>
 </form>
 <script>
 // global context, for this document
@@ -168,6 +173,8 @@ const app = {
 		break;
 		case 'message':
 			console.log(type, {data});
+			document.querySelector('[broadcast]').value = data;
+			app.cmd(data);
 		break;
 		default:
 			console.log(type, {data, message, readyState: ws?.readyState, event});
@@ -181,6 +188,18 @@ const app = {
 		form.addEventListener('reset', app._reset);
 		// apparently reset isn't a feature
 		form.querySelector('[type="reset"]').addEventListener('click', app._reset);
+
+		requestAnimationFrame(()=>{
+			app.connect();
+		});
+	}
+	,cmd(data){
+		try{
+			const json = JSON.parse(data);
+			console.log(`cmd(data)`,{data, json});
+		}catch(error){
+			console.warn(`cmd(data)`,{data, error});
+		};
 	}
 };
 requestAnimationFrame(app.setup);
