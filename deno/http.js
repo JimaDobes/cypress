@@ -1,7 +1,7 @@
 // http
 import * as paf from "https://deno.land/std/path/mod.ts";
 import { Application, Router, HttpError, send, Status } from "https://deno.land/x/oak/mod.ts";
-import { wschat } from "./wschat.js";
+import { ws } from "./ws.js";
 
 const config = {
 	host: 'localhost'
@@ -34,7 +34,7 @@ const mimetypes = {
 	// application/csp-report as JSON
 };
 
-router.get('/ws', wschat);
+router.get('/ws', ws);
 
 // general error handling including unhandled middleware errors (500)
 app.use(async (context, next) => {
@@ -43,6 +43,10 @@ app.use(async (context, next) => {
 		await next();
 	}catch(err){
 		let status = err instanceof HttpError ? err.status : 500;
+
+		// TODO deterime how to reconcile these
+		const responseStatus = response.status;
+
 		const { pathname } = request.url;
 		// adjust response to fit requested mimetype
 		let ext = paf.extname(pathname).toLowerCase();
@@ -56,7 +60,8 @@ app.use(async (context, next) => {
 			if((response.status || 0) < 400){
 				response.status = status;
 			};
-			log(status, request.method, request.url.href, request.user, request.headers.get('user-agent'), request.ip);
+
+			log(status, request.method, request.url.href, request.user, request.headers.get('user-agent'), request.ip, `.status=${responseStatus};${status};${err?.constructor.name ?? ''}${ (err + '') }`);
 
 			let type = mimetypes[ ext ] || mimetypes[ ( ext = 'html' ) ];
 			response.type = type;

@@ -3,8 +3,13 @@ import { v1 } from "https://deno.land/std/uuid/mod.ts";
 
 const users = new Set();
 
-export const wschat = async function wschat(context, next){
-	if(!context.isUpgradable) return
+export const ws = async function wschat(context, next){
+	const { isUpgradable, response } = context;
+	if(!isUpgradable){
+		response.status = 426;
+		response.body = `not upgradable`
+		return;
+	}
 	const socket = await context.upgrade();
 	socket.onmessage = _message;
 	socket.onerror = _error;
@@ -13,6 +18,8 @@ export const wschat = async function wschat(context, next){
 	app._log({VERB:`WS-HELLO`, other: socket.userid});
 	broadcast(`HELLO:${socket.userid}`);
 	users.add(socket);
+	// 204 no content
+	context.response.body = null;
 }
 
 function _message(event){
@@ -35,7 +42,13 @@ function _close(event){
 function broadcast(message, userid){
 	if (!message) return;
 	for (const user of users.values()) {
-		user.send(`${message}`);
+		const { readyState = -1 } = user ?? {};
+		if(readyState === 1){
+			user.send(`${message}`);
+		}else if(readyState > 2){
+			app._log({VERB:`WS-STATUS`, other: `socket.readyState:${readyState}, call close as disconnected`});
+			_close.call(user, {type:'disconnected'});
+		}
 	}
 }
 

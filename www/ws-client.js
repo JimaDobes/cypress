@@ -43,9 +43,11 @@ class WsClient extends LitElement{
 	}
 	connectedCallback(){
 		super.connectedCallback();
+		this.connect();
 	}
 	disconnectedCallback(){
 		super.disconnectedCallback();
+		this.disconnect();
 	}
 	/* ws.readyState: 0 opening; 1 open; 2 closing; 3 closed; */
 	connect(){
@@ -78,8 +80,7 @@ class WsClient extends LitElement{
 	_submit(event){
 		event.preventDefault();
 
-		const {connected, ws, portAppChannel} = this;
-		console.log(event.type, {connected, portAppChannel, ws, event, _this:this}, this);
+		const {connected, ws } = this;
 		if(!this.connected){
 			this.connect();
 		}else{
@@ -101,8 +102,10 @@ class WsClient extends LitElement{
 <input type=search msg>
 <button type=submit>${ this.connected ? 'send':'connect' }</button>
 <button disconnect type=reset>disconnect</button>
-<textarea></textarea>
+<fieldset output>
+<label>output</label>
 <slot>...</slot>
+</fieldset>
 </form>
 		`;
 	}
