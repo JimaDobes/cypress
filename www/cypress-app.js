@@ -34,7 +34,7 @@ main img[edit]{
 	max-width: 100vw;
 	max-height: 100vh;
 }
-maing img:is(:focus, :active, :hover){
+main img:is(:focus, :active, :hover){
 	border-color: #000;
 }
 :host #ui-controls{
@@ -47,11 +47,6 @@ maing img:is(:focus, :active, :hover){
 :host #ui-controls > *{
 	pointer-events: auto;
 }
-[panel][adjustments] img{
-	width: 50px;
-	height: 50px;
-	border: thin solid #000;
-}
 	`;
 	constructor(){
 		super();
@@ -61,10 +56,15 @@ maing img:is(:focus, :active, :hover){
 		this.loading = true;
 
 		this.addEventListener('relay', this._relay);
+		this.addEventListener('adjustment', this._adjustment);
 
 		this._dragevents.forEach(type=>{
 			this.addEventListener(type, this._handleThis);
 		});
+	}
+	_adjustment({detail}){
+		const {adjustment, css} = detail;
+		this.shadowRoot.querySelector('main img[edit]').style = css;
 	}
 	_relay({detail}){
 		this.querySelector('ws-client')?.ws?.send(JSON.stringify(detail));
@@ -101,19 +101,29 @@ maing img:is(:focus, :active, :hover){
 
 		}
 	}
-	_imgUpdate(img){
-		img.src = this.result;
-		console.log({img, res: this.result, reader: this});
+	_updateImg(event){
+		const { target } = event;
+		const { src } = target;
+		this.dispatchEvent(new CustomEvent('img-edit-src', {detail: {src}, composed: true, bubbles: true}));
+		/*
+		const imgs = [...this.shadowRoot.querySelectorAll('img[edit]'), ...this.querySelectorAll('[img-src]')];
+		imgs.forEach(img=>{
+			if(img === target) return;
+			img.src = src;
+		});
+		*/
+	}
+	filed(data, source){
+		this.dispatchEvent(new CustomEvent('relay',{detail: {cmd: 'load', data, source}}));
+		this.shadowRoot.querySelector('img[edit]').src = data;
 	}
 	filing(files){
-		const imgs = [...this.shadowRoot.querySelectorAll('img[edit]'), ...this.querySelectorAll('img[edit]')];
 		// FileList {0: File, length: 1}
 		// KISS demo
 		const file = files.item(0);
 		const reader = new FileReader();
 		reader.onloadend = ()=>{
-			this.dispatchEvent(new CustomEvent('relay',{detail: {cmd: 'load', data:reader.result, source: reader}}));
-			imgs.forEach(this._imgUpdate, reader);
+			this.filed(reader.result, reader);
 		};
 		reader.readAsDataURL(file);
 	}
@@ -121,6 +131,9 @@ maing img:is(:focus, :active, :hover){
 		super.connectedCallback();
 		self.addEventListener('eg', this._handleThis);
 		this.loading = false;
+	}
+	firstUpdated(){
+		this.shadowRoot.querySelector('main img[edit]').src = "./sample.jpg"
 	}
 	disconnectedCallback(){
 		super.disconnectedCallback();
@@ -130,18 +143,22 @@ maing img:is(:focus, :active, :hover){
 	render(){
 		return html`
 <main>
-	<img edit>
+	<img edit @load=${ this._updateImg }>
 </main>
 <section id=ui-controls>
 	<h3>${ this.title }${ this.loading ? ' loading...':'' }</h3> 
-	<section panel adjustments>
-		<img edit>
-		<img edit>
-		<img edit>
-	</section>
+	<cypress-adjustment panel>
+		<!-- 
+		saturate 10 ~= 100in Ps
+		<img edit title="hue-intensity" style="">
+		<img edit title="grayscale" style="">
+		brightness: 1 nothing; 0% black, 200% double brightness; contrast: 0 gray, 1 no effect, 200% double
+		<img edit title="grayscale" style=""
+			ps=""
+		>
+		-->
+	</cypress-adjustment>
 	<section>
-	various
-	<button>button</button>
 	<slot></slot>
 	</section>
 
