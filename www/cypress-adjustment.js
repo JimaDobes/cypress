@@ -89,17 +89,19 @@ img{
  */
 	render(){
 		return html`
-<h3>click one of these adjustments</h3>
+<h3>click an adjustment</h3>
+<div>
 ${ this.list.map((adj,i)=>{
 	const { style, name, id } = adj;
 	return html`<img style=${style} title=${name} id=${ id } src="${ this.img }" index=${ i }>`;
 }) }
+</div>
 <slot></slot>
 		`;
 	}
 	_click(event){
 		const path = event.composedPath();
-		const img = path.find(node=>node.matches('img'));
+		const img = path.find(node=>node.matches?.('img'));
 		if(!img) return;
 
 		const css = img.getAttribute('style');

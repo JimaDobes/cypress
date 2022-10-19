@@ -24,9 +24,6 @@ class CypressApp extends LitElement{
 	align-items: center;
 	justify-content: center;
 }
-:host([dragging]) main{
-	background-color:red;
-}
 main img[edit]{
 	border: thin solid #333;
 	min-width: 1rem;
@@ -46,6 +43,20 @@ main img:is(:focus, :active, :hover){
 }
 :host #ui-controls > *{
 	pointer-events: auto;
+}
+header{
+	position: sticky;
+	top:0;
+	width:100vw;
+	padding: .5em;
+}
+[panel]{
+	display: inline-flex;
+	position:fixed;
+	inset: 20vh auto auto 1em;
+	border: thin solid black;
+	background-color: rgba(51,51,51,0.5);
+	flex-direction: column;
 }
 	`;
 	constructor(){
@@ -146,7 +157,7 @@ main img:is(:focus, :active, :hover){
 	<img edit @load=${ this._updateImg }>
 </main>
 <section id=ui-controls>
-	<h3>${ this.title }${ this.loading ? ' loading...':'' }</h3> 
+	<header> ${ this.title }${ this.loading ? ' loading...':'' } </header>
 	<cypress-adjustment panel>
 		<!-- 
 		saturate 10 ~= 100in Ps
