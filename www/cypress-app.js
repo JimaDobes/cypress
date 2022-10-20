@@ -55,14 +55,14 @@ header{
 	position:fixed;
 	inset: 20vh auto auto 1em;
 	border: thin solid black;
-	background-color: rgba(51,51,51,0.5);
+	background-color: rgba(51,51,51,0.7);
 	flex-direction: column;
 }
 	`;
 	constructor(){
 		super();
 		this.TODO = 'everything TODO...';
-		this.title = 'cypress 🌲';
+		this.label = 'cypress 🌲';
 		this._handleThis = this._handleThis.bind(this);
 		this.loading = true;
 
@@ -157,7 +157,7 @@ header{
 	<img edit @load=${ this._updateImg }>
 </main>
 <section id=ui-controls>
-	<header> ${ this.title }${ this.loading ? ' loading...':'' } </header>
+	<header> ${ this.loading ? ' loading...':'' } </header>
 	<cypress-adjustment panel>
 		<!-- 
 		saturate 10 ~= 100in Ps

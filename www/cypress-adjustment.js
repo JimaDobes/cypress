@@ -28,11 +28,17 @@ img{
 		this.list = [
 			{ name: 'reset', id: 'a1',
 				style: '',
-				ps: {}
+				ps: []
 			},
 			{ name: 'hue-intensity', id: 'a2',
 				style: 'filter: hue-rotate(26deg) saturate(10) brightness(1.5)',
-				ps: {}
+				ps: [
+{ using: { "_obj":"adjustmentLayer", "type":{
+		"_obj":"hueSaturation", "colorize":false, "adjustment":[{"_obj":"hueSatAdjustmentV2","hue":26,"lightness":6,"saturation":93}],
+	     "presetKind":{"_enum":"presetKindType","_value":"presetKindCustom"}
+} }}
+
+				]
 			},
 /** 
     // Set current adjustment layer
@@ -41,15 +47,19 @@ img{
  *****/
 			{ name: 'grayscale', id: 'a3',
 				style: 'filter: grayscale(0.93)',
-				ps: {}
+				ps: [
+{"using":{"_obj":"adjustmentLayer","type":{"_obj":"blackAndWhite","blue":20,"cyan":60,"grain":40,"magenta":80,"presetKind":{"_enum":"presetKindType","_value":"presetKindDefault"},"red":40,"tintColor":{"_obj":"RGBColor","blue":179.00115966796876,"grain":211.00067138671876,"red":225.00045776367188},"useTint":false,"yellow":60}}}
+		]
 			},
 /**
         // Make adjustment layer
-        {"_obj":"make","_target":[{"_ref":"adjustmentLayer"}],"using":{"_obj":"adjustmentLayer","type":{"_obj":"blackAndWhite","blue":20,"cyan":60,"grain":40,"magenta":80,"presetKind":{"_enum":"presetKindType","_value":"presetKindDefault"},"red":40,"tintColor":{"_obj":"RGBColor","blue":179.00115966796876,"grain":211.00067138671876,"red":225.00045776367188},"useTint":false,"yellow":60}}}
+        {"using":{"_obj":"adjustmentLayer","type":{"_obj":"blackAndWhite","blue":20,"cyan":60,"grain":40,"magenta":80,"presetKind":{"_enum":"presetKindType","_value":"presetKindDefault"},"red":40,"tintColor":{"_obj":"RGBColor","blue":179.00115966796876,"grain":211.00067138671876,"red":225.00045776367188},"useTint":false,"yellow":60}}}
  *****/
 			{ name: 'contrasty', id: 'a4',
 				style: 'filter: brightness(1.1) contrast(160%)',
-				ps: {}
+				ps: [
+{using: { _obj: "adjustmentLayer", type: {"_obj":"brightnessEvent","brightness":62,"center":76,"useLegacy":false}} }
+				]
 
 /**
         // Make adjustment layer
@@ -107,7 +117,7 @@ ${ this.list.map((adj,i)=>{
 		const css = img.getAttribute('style');
 		const index = img.getAttribute('index');
 		const adjustment = this.list[ index ];
-		const detail = {css, adjustment};
+		const detail = {css, preset:adjustment, cmd: 'preset'};
 		this.dispatchEvent(new CustomEvent('adjustment', {composed: true, detail, bubbles: true}));
 		console.warn('needs translation for Ps>',detail);
 		this.dispatchEvent(new CustomEvent('relay', {composed: true, detail, bubbles: true, cancelable: true}));

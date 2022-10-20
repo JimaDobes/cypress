@@ -196,9 +196,13 @@ const app = {
 	,cmd(data){
 		try{
 			const json = JSON.parse(data);
-			console.log(`cmd(data)`,{data, json});
+			console.log(`cmd(...)`,{json});
+			const {cmd} = json;
+			if(cmd && ps[cmd]){
+				ps[cmd](json);
+			}
 		}catch(error){
-			console.warn(`cmd(data)`,{data, error});
+			console.warn(error, {data});
 		};
 	}
 };
@@ -208,6 +212,7 @@ requestAnimationFrame(app.setup);
 /* runs in UXP context */
 require('./ps.js');
 globalThis.ps.init();
+require('./ps-preset.js');
 </script>
 <script type=module>
 /* modern browser context */
@@ -217,6 +222,7 @@ Promise.all([
 ]).then(res=>{
 	const { ps, photoshop } = globalThis;
 	ps.init();
+	import('./ps-preset.js');
 	console.log({ps, photoshop});
 })
 ;
