@@ -72,6 +72,7 @@ header{
 		this._dragevents.forEach(type=>{
 			this.addEventListener(type, this._handleThis);
 		});
+		this.addEventListener('cmd', this._handleThis);
 	}
 	_adjustment({detail}){
 		const {adjustment, css} = detail;
@@ -100,6 +101,9 @@ header{
 			return;
 		}
 		switch(type){
+		case 'cmd':
+			this.cmd(event);
+		break;
 		case 'drop':
 			event.preventDefault();
 			event.stopImmediatePropagation();
@@ -110,6 +114,17 @@ header{
 		default:
 			console.log(type, {detail, event, _this: this, path: event.composedPath()});
 
+		}
+	}
+	cmd(event){
+		const {detail} = event;
+		const {cmd} = detail;
+		switch(cmd){
+		case 'preset':
+			this._adjustment(event);
+		break;
+		default:
+			console.warn(`cmd(${ cmd })`, {detail, event});
 		}
 	}
 	_updateImg(event){

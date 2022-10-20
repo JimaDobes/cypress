@@ -37,10 +37,22 @@ class WsClient extends LitElement{
 		case 'message':
 			console.log(type, {data});
 			this.shadowRoot.querySelector('[broadcast]').value = data;
+			this.cmd(data);
 		break;
 		default:
 			console.log(type, {data, message, readyState: ws?.readyState, event});
 		}
+	}
+	cmd(data){
+		try{
+			const json = JSON.parse(data);
+			console.log(`cmd(...)`,{json});
+			const {cmd} = json;
+			// TODO possibly improve
+			this.dispatchEvent(new CustomEvent('cmd', {bubbles: true, cancelable: true, composed: true, detail: json}));
+		}catch(error){
+			console.warn(error, {data});
+		};
 	}
 	connectedCallback(){
 		super.connectedCallback();
